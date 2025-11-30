@@ -2,6 +2,8 @@
 
 This project implements the **two tasks** defined in the assignment:
 
+(If any questions, kindly contact me via email: aabhaybhardwaj99@gmail.com)
+
 - **Task A – FAQ Search**
 - **Task B – Micro Scraper (webpage scraping endpoint)**
 
