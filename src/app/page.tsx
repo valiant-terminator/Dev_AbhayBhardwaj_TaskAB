@@ -1,65 +1,142 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import Head from "next/head";
+
+type SearchResult = {
+  id: string;
+  title: string;
+  body: string;
+};
+
+export default function HomePage() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [summary, setSummary] = useState("");
+  const [sources, setSources] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleSearch = async () => {
+    setLoading(true);
+    setError("");
+    setMessage("");
+    setResults([]);
+    setSummary("");
+    setSources([]);
+
+    try {
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong");
+      }
+
+      if (data.message) {
+        setMessage(data.message);
+      }
+
+      setResults(data.results || []);
+      setSummary(data.summary || "");
+      setSources(data.sources || []);
+    } catch (err: any) {
+      setError(err.message || "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const hasResults = results.length > 0;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+  
+	<>
+	<Head>
+        <title>FAQ Search App</title>
+        <meta name="description" content="Search FAQs by relevance" />
+     </Head>
+  
+    <main
+      style={{
+        padding: "2rem",
+        maxWidth: 600,
+        margin: "0 auto",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <h1>FAQ Search</h1>
+
+      {/* Search input + button */}
+      <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+        <input
+          style={{ flex: 1, padding: "0.5rem" }}
+          type="text"
+          placeholder="Search FAQs (e.g. trust badges)"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+        <button onClick={handleSearch} disabled={loading}>
+          {loading ? "Searching..." : "Search"}
+        </button>
+      </div>
+
+      {/* Error state */}
+      {error && (
+        <p style={{ color: "red", marginTop: "1rem" }}>
+          Error: {error}
+        </p>
+      )}
+
+      {/* Info message*/}
+      {message && !hasResults && !error && (
+        <p style={{ marginTop: "1rem" }}>{message}</p>
+      )}
+
+      {/* Empty state*/}
+      {!loading && !error && !hasResults && !message && (
+        <p style={{ marginTop: "1rem" }}>Try searching for an FAQ above.</p>
+      )}
+
+      {/* Results */}
+      {hasResults && (
+        <section style={{ marginTop: "2rem" }}>
+          <h2>Results</h2>
+          {results.map((item) => (
+            <article
+              key={item.id}
+              style={{
+                border: "1px solid #ddd",
+                padding: "0.75rem",
+                borderRadius: 8,
+                marginBottom: "0.75rem",
+              }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
+          ))}
+
+          {/*summary + sources */}
+          {summary && (
+            <div style={{ marginTop: "1rem", fontStyle: "italic" }}>
+              <strong>Summary:</strong> {summary}
+            </div>
+          )}
+          {sources.length > 0 && (
+            <div style={{ marginTop: "0.5rem" }}>
+              <strong>Sources:</strong> [{sources.join(", ")}]
+            </div>
+          )}
+        </section>
+      )}
+    </main>
+	</>
   );
 }
