@@ -1,17 +1,15 @@
-# Spiralyze Full-Stack Mini-Project
+# Spiralyze Task
 
 This project implements the **two tasks** defined in the assignment:
 
-- **Task A – Mini Full-Stack Search**
+- **Task A – FAQ Search**
 - **Task B – Micro Scraper (webpage scraping endpoint)**
-
-It is built using **Next.js** 
 
 ---
 
 ### Task A – FAQ Search
 - Search FAQs stored in local `faqs.json`
-- Multi-occurrence keyword scoring algorithm
+- Multi-occurrence keyword scoring logic
 - Weighted relevance scoring (Title = x2, Body = x1)
 - Returns **maximum 3 highest-relevance results**
 - Handles:
@@ -60,5 +58,10 @@ src/
 npm run dev
 Visit: http://localhost:3000
 
-### API Endpoint
+### NOTE
+Both tasks are present under the same GitHub Repository
+Task A can be accessed through UI: (Visit: http://localhost:3000)
+Task B can be accessed through endpoint (GET /api/scrape?url=<https://example.com>)
+
+### Endpoint
 GET /api/scrape?url=<https://example.com>
